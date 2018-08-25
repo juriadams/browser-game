@@ -161,7 +161,7 @@ player2Trigger.press = () => {
     } else {
         player2.rotation -= 0.1;
     }
-    player2Down = !player2Down
+    player2Down = !player2Down;
     player2.x += difficulty;
 };
 
