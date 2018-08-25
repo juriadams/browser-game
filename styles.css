@@ -1,5 +1,11 @@
+@font-face {
+    font-family: 'Stroud';
+    src: url("assets/fonts/stroud.otf") format("opentype");
+}
+
 body {
     padding: 0;
     margin: 0;
     text-align: center;
+    font-family: 'Stroud', sans-serif;
 }

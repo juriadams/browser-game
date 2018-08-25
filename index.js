@@ -78,23 +78,26 @@ function hitTestRectangle(r1, r2) {
     return hit;
 }
 
+// Switching to Canvas-mode if OpenGL is not supported
 var type = "WebGL";
 if(!PIXI.utils.isWebGLSupported()){
     type = "canvas"
 }
 
+// Display PixiJS' hello-message
 PIXI.utils.sayHello(type);
 
 // Create the application
-// TODO: Make size of browser window
 var app = new PIXI.Application({
     width: 1000,
     height: 600,
     antialias: true
 });
 
-var player1, player2, goal, state;
+// Defining global variables
+var player1, player2, goal, finishLine, timer, state;
 
+// Setting difficulty // TODO: Set in selection screen
 var difficulty = 5;
 
 // Setting game background-color, TODO: replace with background image
@@ -103,7 +106,7 @@ app.renderer.backgroundColor = 0x061639;
 // Loading all images and then calling setup() function
 PIXI.loader.add(['assets/images/minion.png', 'assets/images/bg.png', 'assets/images/player3.png', 'assets/images/goal.png']).load(setup);
 
-// Adding the players to the stage
+// Setting up main game level
 function setup() {
 
     // Loading in background
@@ -112,13 +115,15 @@ function setup() {
     background.height = app.screen.height;
     app.stage.addChild(background);
 
-    goal = new PIXI.Sprite(PIXI.loader.resources['assets/images/goal.png'].texture);
-    goal.anchor.set(0.5);
-    goal.x = app.screen.width - goal.width / 2;
-    goal.y = app.screen.height / 2;
-    app.stage.addChild(goal);
+    // Loading in invisible finishLine-object for hitDetection
+    finishLine = new PIXI.Sprite(PIXI.loader.resources['assets/images/goal.png'].texture);
+    finishLine.height = app.screen.height;
+    finishLine.x = app.screen.width;
+    finishLine.width = 1;
+    finishLine.opacity = 0;
+    app.stage.addChild(finishLine);
 
-    // Loading and adding player textures to canvas
+    // Loading in players
     player1 = new PIXI.Sprite(PIXI.loader.resources['assets/images/minion.png'].texture);
     player2 = new PIXI.Sprite(PIXI.loader.resources['assets/images/minion.png'].texture);
     app.stage.addChild(player1);
@@ -128,7 +133,7 @@ function setup() {
     player1.anchor.set(0.5);
     player1.height = 100;
     player1.width = 100;
-    player1.x = 50;
+    player1.x = 75;
     player1.y = app.screen.height / 2 - app.screen.height / 10;
     player1.vx = 0; // Setting velocity
     player1.vy = 0; // Setting velocity
@@ -137,10 +142,34 @@ function setup() {
     player2.anchor.set(0.5);
     player2.height = 100;
     player2.width = 100;
-    player2.x = 50;
+    player2.x = 75;
     player2.y = app.screen.height / 2 + app.screen.height / 10;
     player2.vx = 0; // Setting velocity
     player2.vy = 0; // Setting velocity
+
+    // Loading in visible 'finish line', aka the pot
+    goal = new PIXI.Sprite(PIXI.loader.resources['assets/images/goal.png'].texture);
+    goal.anchor.set(0.5);
+    goal.x = app.screen.width - goal.width / 2;
+    goal.y = app.screen.height / 2;
+    app.stage.addChild(goal);
+
+    let style = new PIXI.TextStyle({
+        align: 'center',
+        fontFamily: "Stroud",
+        fontSize: 56,
+        fill: "white",
+        dropShadow: true,
+        dropShadowColor: "#000000",
+        dropShadowBlur: 4,
+        dropShadowAngle: 1,
+        dropShadowDistance: 6
+    });
+    let message = new PIXI.Text('Welcome to Minion Rush!', style);
+    message.anchor.set(0.5);
+    message.x = app.screen.width / 2;
+    message.y = 100;
+    app.stage.addChild(message);
 
     // Setting game state to play
     state = pause;
@@ -150,17 +179,16 @@ function setup() {
 }
 
 function gameLoop(delta){
-
     // Update the current game state
     state(delta);
 }
 
 function play(delta) {
-    if (hitTestRectangle(player1, goal)) {
+    if (hitTestRectangle(player1, finishLine)) {
         console.log('Player 1 won!');
         state = end;
     }
-    if (hitTestRectangle(player2, goal)) {
+    if (hitTestRectangle(player2, finishLine)) {
         console.log('Player 2 won!');
         state = end;
     }
