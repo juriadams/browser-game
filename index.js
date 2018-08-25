@@ -14,15 +14,23 @@ var app = new PIXI.Application({
 });
 
 // Defining some globally accessible variables
-var player1, player2, goal, finishLine, title, countdown, state;
+var player1, player2, enemy, goal, finishLine, title, countdown, state;
 var player1Trigger = keyboard(83);
 var player2Trigger = keyboard(76);
+var enemyAlive = false;
 
 // Setting difficulty // TODO: Set in selection screen
 var difficulty = 5;
 
 // Loading all images and then calling setup() function
-PIXI.loader.add(['assets/images/minion.png', 'assets/images/bg.png', 'assets/images/player3.png', 'assets/images/goal.png']).load(setup);
+PIXI.loader.add([
+    'assets/images/minion.png',
+    'assets/images/bg.png',
+    'assets/images/goal.png',
+    'assets/images/enemy1.png',
+    'assets/images/enemy2.png',
+    'assets/images/enemy3.png'
+]).load(setup);
 
 // Setting up main game level
 function setup() {
@@ -51,7 +59,7 @@ function setup() {
     player1.anchor.set(0.5);
     player1.height = 100;
     player1.width = 100;
-    player1.x = 875;
+    player1.x = 75;
     player1.y = app.screen.height / 2 - app.screen.height / 10;
     player1.vx = 0; // Setting velocity
     player1.vy = 0; // Setting velocity
@@ -132,7 +140,6 @@ function setup() {
 
     // Setting game state to pause
     state = pause;
-    console.log(state);
 
     // Launching the gameLoop() function (calling 60 times per second)
     app.ticker.add(delta => gameLoop(delta));
@@ -184,6 +191,11 @@ function play(delta) {
         console.log('Player 2 won!');
         gameOver('Player 2');
     }
+
+    for (var i = 0; i < enemies.length; i++) {
+        enemies[i].rotation += 0.005 * delta;
+        enemies[i].children[0].rotation += 0.01 * delta;
+    }
 }
 
 function pause(delta) {
@@ -207,6 +219,7 @@ function startGame() {
         countdown.text = '1...';
     }, 2000);
     setTimeout(() => {
+        spawnEnemies();
         countdown.text = 'GO!';
         state = play;
     }, 3000);
@@ -225,6 +238,31 @@ function gameOver(player) {
     goal.visible = false;
     player1.x = 75;
     player2.x = 75;
+}
+
+var enemies = [];
+function spawnEnemies() {
+    if (!enemies.length > 0) {
+        for (var i = 0; i < 5; i++) {
+            enemies[i] = new PIXI.Container();
+            enemies[i].position.set(app.screen.width/2, app.screen.height/2);
+            enemies[i].rotation = (i / 5) * (Math.PI * 2);
+            enemies[i].pivot.set(0, -200);
+
+            let enemySprites = [
+                'assets/images/enemy1.png',
+                'assets/images/enemy2.png',
+                'assets/images/enemy3.png'
+            ];
+            let enemySprite = new PIXI.Sprite(PIXI.loader.resources[enemySprites[Math.floor(Math.random() * enemySprites.length)]].texture);
+            enemies[i].addChild(enemySprite);
+            enemySprite.anchor.set(0.5);
+            enemySprite.scale.set(0.5 + Math.random());
+            enemySprite.alpha = 0.25;
+
+            app.stage.addChild(enemies[i]);
+        }
+    }
 }
 
 // Add the generated canvas to the screen
