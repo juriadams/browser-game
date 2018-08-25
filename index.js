@@ -1,83 +1,3 @@
-function keyboard(keyCode) {
-    let key = {};
-    key.code = keyCode;
-    key.isDown = false;
-    key.isUp = true;
-    key.press = undefined;
-    key.release = undefined;
-    //The `downHandler`
-    key.downHandler = event => {
-        if (event.keyCode === key.code) {
-            if (key.isUp && key.press) key.press();
-            key.isDown = true;
-            key.isUp = false;
-        }
-        event.preventDefault();
-    };
-
-    //The `upHandler`
-    key.upHandler = event => {
-        if (event.keyCode === key.code) {
-            if (key.isDown && key.release) key.release();
-            key.isDown = false;
-            key.isUp = true;
-        }
-        event.preventDefault();
-    };
-
-    //Attach event listeners
-    window.addEventListener(
-        "keydown", key.downHandler.bind(key), false
-    );
-    window.addEventListener(
-        "keyup", key.upHandler.bind(key), false
-    );
-    return key;
-}
-
-function hitTestRectangle(r1, r2) {
-
-    //Define the variables we'll need to calculate
-    let hit, combinedHalfWidths, combinedHalfHeights, vx, vy;
-
-    //hit will determine whether there's a collision
-    hit = false;
-
-    //Find the center points of each sprite
-    r1.centerX = r1.x + r1.width / 2;
-    r1.centerY = r1.y + r1.height / 2;
-    r2.centerX = r2.x + r2.width / 2;
-    r2.centerY = r2.y + r2.height / 2;
-
-    //Find the half-widths and half-heights of each sprite
-    r1.halfWidth = r1.width / 2;
-    r1.halfHeight = r1.height / 2;
-    r2.halfWidth = r2.width / 2;
-    r2.halfHeight = r2.height / 2;
-
-    //Calculate the distance vector between the sprites
-    vx = r1.centerX - r2.centerX;
-    vy = r1.centerY - r2.centerY;
-
-    //Figure out the combined half-widths and half-heights
-    combinedHalfWidths = r1.halfWidth + r2.halfWidth;
-    combinedHalfHeights = r1.halfHeight + r2.halfHeight;
-
-    //Check for a collision on the x axis
-    if (Math.abs(vx) < combinedHalfWidths) {
-
-        //A collision might be occuring. Check for a collision on the y axis
-        hit = Math.abs(vy) < combinedHalfHeights;
-    } else {
-
-        //There's no collision on the x axis
-        hit = false;
-    }
-
-    //`hit` will be either `true` or `false`
-    return hit;
-}
-
 // Switching to Canvas-mode if OpenGL is not supported
 var type = "WebGL";
 if(!PIXI.utils.isWebGLSupported()){
@@ -87,21 +7,19 @@ if(!PIXI.utils.isWebGLSupported()){
 // Display PixiJS' hello-message
 PIXI.utils.sayHello(type);
 
-// Create the application
+// Create the game app and canvas with it
 var app = new PIXI.Application({
     width: 1000,
-    height: 600,
-    antialias: true
+    height: 600
 });
 
-// Defining global variables
-var player1, player2, goal, finishLine, timer, state;
+// Defining some globally accessible variables
+var player1, player2, goal, finishLine, title, countdown, state;
+var player1Trigger = keyboard(83);
+var player2Trigger = keyboard(76);
 
 // Setting difficulty // TODO: Set in selection screen
 var difficulty = 5;
-
-// Setting game background-color, TODO: replace with background image
-app.renderer.backgroundColor = 0x061639;
 
 // Loading all images and then calling setup() function
 PIXI.loader.add(['assets/images/minion.png', 'assets/images/bg.png', 'assets/images/player3.png', 'assets/images/goal.png']).load(setup);
@@ -133,10 +51,11 @@ function setup() {
     player1.anchor.set(0.5);
     player1.height = 100;
     player1.width = 100;
-    player1.x = 75;
+    player1.x = 875;
     player1.y = app.screen.height / 2 - app.screen.height / 10;
     player1.vx = 0; // Setting velocity
     player1.vy = 0; // Setting velocity
+    player1.visible = false;
 
     // Setting up player2
     player2.anchor.set(0.5);
@@ -146,12 +65,14 @@ function setup() {
     player2.y = app.screen.height / 2 + app.screen.height / 10;
     player2.vx = 0; // Setting velocity
     player2.vy = 0; // Setting velocity
+    player2.visible = false;
 
     // Loading in visible 'finish line', aka the pot
     goal = new PIXI.Sprite(PIXI.loader.resources['assets/images/goal.png'].texture);
     goal.anchor.set(0.5);
     goal.x = app.screen.width - goal.width / 2;
     goal.y = app.screen.height / 2;
+    goal.visible = false;
     app.stage.addChild(goal);
 
     let style = new PIXI.TextStyle({
@@ -165,14 +86,53 @@ function setup() {
         dropShadowAngle: 1,
         dropShadowDistance: 6
     });
-    let message = new PIXI.Text('Welcome to Minion Rush!', style);
-    message.anchor.set(0.5);
-    message.x = app.screen.width / 2;
-    message.y = 100;
-    app.stage.addChild(message);
 
-    // Setting game state to play
+    let counterStyle = new PIXI.TextStyle({
+        align: 'center',
+        fontFamily: "Stroud",
+        fontSize: 156,
+        fill: "white",
+        dropShadow: true,
+        dropShadowColor: "#000000",
+        dropShadowBlur: 4,
+        dropShadowAngle: 1,
+        dropShadowDistance: 6
+    });
+
+    let hintStyle = new PIXI.TextStyle({
+        align: 'center',
+        fontFamily: "Stroud",
+        fontSize: 36,
+        fill: "white",
+        dropShadow: true,
+        dropShadowColor: "#000000",
+        dropShadowBlur: 4,
+        dropShadowAngle: 1,
+        dropShadowDistance: 6
+    });
+
+    title = new PIXI.Text('Welcome to Minion Rush!', style);
+    title.anchor.set(0.5);
+    title.x = app.screen.width / 2;
+    title.y = 100;
+    app.stage.addChild(title);
+
+    countdown = new PIXI.Text('3', counterStyle);
+    countdown.anchor.set(0.5);
+    countdown.x = app.screen.width / 2;
+    countdown.y = app.screen.height / 2;
+    countdown.visible = false;
+    app.stage.addChild(countdown);
+
+    hint = new PIXI.Text('Press SPACEBAR to start the game!', hintStyle);
+    hint.anchor.set(0.5);
+    hint.x = app.screen.width / 2;
+    hint.y = app.screen.height / 2;
+    app.stage.addChild(hint);
+
+    // Setting game state to pause
     state = pause;
+    console.log(state);
 
     // Launching the gameLoop() function (calling 60 times per second)
     app.ticker.add(delta => gameLoop(delta));
@@ -183,73 +143,89 @@ function gameLoop(delta){
     state(delta);
 }
 
+// Defining these variables outside of the play function
+// Otherwise they'll just be reset over and over again and won't work
+var player1Down = true;
+var player2Down = true;
+
 function play(delta) {
+    // Showing players and goal
+    player1.visible = true;
+    player2.visible = true;
+    goal.visible = true;
+
+    // Player movement and animation
+    player1Trigger.press = () => {
+        if(player1Down) {
+            player1.rotation += 0.1;
+        } else {
+            player1.rotation -= 0.1;
+        }
+        player1Down = !player1Down;
+        player1.x += difficulty;
+    };
+
+    player2Trigger.press = () => {
+        if(player2Down) {
+            player2.rotation += 0.1;
+        } else {
+            player2.rotation -= 0.1;
+        }
+        player2Down = !player2Down;
+        player2.x += difficulty;
+    };
+
+    // Finish check
     if (hitTestRectangle(player1, finishLine)) {
         console.log('Player 1 won!');
-        state = end;
+        gameOver('Player 1');
     }
     if (hitTestRectangle(player2, finishLine)) {
         console.log('Player 2 won!');
-        state = end;
+        gameOver('Player 2');
     }
 }
 
 function pause(delta) {
-    player1.vx = 0;
-    player2.vx = 0;
+    let startTrigger = keyboard(32);
+    startTrigger.press = () => {
+        if (state === pause) {
+            startGame();
+        }
+    };
 }
 
 function startGame() {
-    // Make characters start move
-    state = play;
+    title.visible = false;
+    hint.visible = false;
+    countdown.visible = true;
+    countdown.text = '3...';
+    setTimeout(() => {
+        countdown.text = '2...';
+    }, 1000);
+    setTimeout(() => {
+        countdown.text = '1...';
+    }, 2000);
+    setTimeout(() => {
+        countdown.text = 'GO!';
+        state = play;
+    }, 3000);
+    setTimeout(() => {
+        countdown.visible = false;
+    }, 4000);
 }
 
-function pauseGame() {
-    // Stop characters from moving
+function gameOver(player) {
     state = pause;
+    title.text = player + ' won!';
+    title.visible = true;
+    hint.visible = true;
+    player1.visible = false;
+    player2.visible = false;
+    goal.visible = false;
+    player1.x = 75;
+    player2.x = 75;
 }
-
-function resetGame() {
-    // Stop characters from moving and resetting them to their start position
-    state = pause;
-
-    // Resetting the players' positions and rotations
-    player1.x = 50;
-    player1.rotation = 0;
-    player2.x = 50;
-    player2.rotation = 0;
-}
-
-var player1Trigger = keyboard(83);
-var player2Trigger = keyboard(76);
-var resetTrigger = keyboard(82);
-
-resetTrigger.press = () => {
-  resetGame();
-};
-
-var player1Down = true;
-player1Trigger.press = () => {
-    if(player1Down) {
-        player1.rotation += 0.1;
-    } else {
-        player1.rotation -= 0.1;
-    }
-    player1Down = !player1Down;
-    player1.x += difficulty;
-};
-
-var player2Down = true;
-player2Trigger.press = () => {
-    if(player2Down) {
-        player2.rotation += 0.1;
-    } else {
-        player2.rotation -= 0.1;
-    }
-    player2Down = !player2Down;
-    player2.x += difficulty;
-};
-
 
 // Add the generated canvas to the screen
 document.body.appendChild(app.view);

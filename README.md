@@ -3,6 +3,10 @@
 **Minion Rush** is an homage to an old browser game developed by Riot Games called 'The Teemoing'.<br>
 In this game, however, you're not sacrificing minions, but playing one, racing a friend!
 
+## Controls
+**Player 1:** `S` for moving, `D` for going into ghost mode<br>
+**Player 2:** `L` for moving, `K` for going into ghost mode
+
 ## Upcoming
 
 Soon, there will be some mobs you have to play against. These will spawn periodically and the player has to dodge them
