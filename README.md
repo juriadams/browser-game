@@ -1,7 +1,7 @@
 # Minion Rush
 
-[b]Minion Rush[/b] is an homage to an old browser game developed by Riot Games called 'The Teemoing'.
-In this game, however, you're not sacrificing minions, but playing one racing a friend!
+**Minion Rush** is an homage to an old browser game developed by Riot Games called 'The Teemoing'.<br>
+In this game, however, you're not sacrificing minions, but playing one, racing a friend!
 
 ## Upcoming
 
