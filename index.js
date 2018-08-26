@@ -27,44 +27,6 @@ var player2Trigger = keyboard(76);
 var startTrigger = keyboard(32);
 var enemies = [];
 
-// Defining some text styles
-const style = new PIXI.TextStyle({
-    align: 'center',
-    fontFamily: "Stroud",
-    fontSize: 56,
-    fill: "white",
-    dropShadow: true,
-    dropShadowColor: "#000000",
-    dropShadowBlur: 4,
-    dropShadowAngle: 1,
-    dropShadowDistance: 6
-});
-
-const counterStyle = new PIXI.TextStyle({
-    align: 'center',
-    fontFamily: "Stroud",
-    fontSize: 156,
-    fill: "white",
-    dropShadow: true,
-    dropShadowColor: "#000000",
-    dropShadowBlur: 4,
-    dropShadowAngle: 1,
-    dropShadowDistance: 6
-});
-
-const hintStyle = new PIXI.TextStyle({
-    align: 'center',
-    fontFamily: "Stroud",
-    fontSize: 36,
-    fill: "white",
-    dropShadow: true,
-    dropShadowColor: "#000000",
-    dropShadowBlur: 4,
-    dropShadowAngle: 1,
-    dropShadowDistance: 6
-});
-
-
 // Setting difficulty // TODO: Set in selection screen
 var difficulty = 5;
 
