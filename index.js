@@ -28,6 +28,7 @@ var startTrigger = keyboard(32);
 var difficulty1Trigger = keyboard(49);
 var difficulty2Trigger = keyboard(50);
 var difficulty3Trigger = keyboard(51);
+var toggleMusicTrigger = keyboard(77);
 var enemies = [];
 
 // Setting difficulty // TODO: Set in selection screen
@@ -49,6 +50,27 @@ var difficulties = [
     }
 ];
 var difficulty = 1;
+
+// Adding audio
+const bgm = PIXI.sound.Sound.from({
+    url: 'assets/sounds/background.mp3',
+    autoPlay: true,
+    complete: function() {
+        bgm.play();
+    }
+});
+
+// Changing audio volume so you don't get blasted away instantly
+bgm.volume = 0.5;
+
+const accept = PIXI.sound.Sound.from({
+    url: 'assets/sounds/start.mp3',
+});
+
+const finish = PIXI.sound.Sound.from({
+    url: 'assets/sounds/end.mp3'
+});
+
 
 // Loading all images and then calling the setup() function
 PIXI.loader.add([
@@ -214,11 +236,13 @@ function play(delta) {
     // Checking if player2 hit the finishLine
     if (hitTestRectangle(player1, finishLine)) {
         state = postGame;
+        finish.play();
         gameOver('Player 1');
     }
 
     // Checking if player2 hit the finishLine
     if (hitTestRectangle(player2, finishLine)) {
+        finish.play();
         state = postGame;
         gameOver('Player 2');
     }
@@ -270,7 +294,6 @@ function pause(delta) {
 // Countdown function, switching game state after 3 seconds
 function startGame() {
     state = preGame;
-    console.log(state);
     title.visible = false;
     hint.visible = false;
     countdown.visible = true;
@@ -353,9 +376,18 @@ difficulty3Trigger.press = () => {
 startTrigger.press = () => {
     if (state === pause || state === postGame) {
         state = preGame;
-        console.log(state);
+        accept.play();
         startGame();
     }
+};
+
+toggleMusicTrigger.press = () => {
+    if (bgm.volume > 0) {
+        bgm.volume = 0;
+    } else if (bgm.volume === 0) {
+        bgm.volume = 0.5;
+    }
+
 };
 
 // Add the generated canvas to the screen

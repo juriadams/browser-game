@@ -86,9 +86,9 @@ const style = new PIXI.TextStyle({
     fill: "white",
     dropShadow: true,
     dropShadowColor: "#000000",
-    dropShadowBlur: 4,
-    dropShadowAngle: 1,
-    dropShadowDistance: 6
+    dropShadowBlur: 10,
+    dropShadowAngle: 1.5,
+    dropShadowDistance: 4
 });
 
 const counterStyle = new PIXI.TextStyle({
@@ -98,9 +98,9 @@ const counterStyle = new PIXI.TextStyle({
     fill: "white",
     dropShadow: true,
     dropShadowColor: "#000000",
-    dropShadowBlur: 4,
-    dropShadowAngle: 1,
-    dropShadowDistance: 6
+    dropShadowBlur: 10,
+    dropShadowAngle: 1.5,
+    dropShadowDistance: 4
 });
 
 const hintStyle = new PIXI.TextStyle({
@@ -110,7 +110,7 @@ const hintStyle = new PIXI.TextStyle({
     fill: "white",
     dropShadow: true,
     dropShadowColor: "#000000",
-    dropShadowBlur: 4,
-    dropShadowAngle: 1,
-    dropShadowDistance: 6
+    dropShadowBlur: 10,
+    dropShadowAngle: 1.5,
+    dropShadowDistance: 4
 });
