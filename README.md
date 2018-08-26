@@ -5,7 +5,8 @@ In this game, however, you're not sacrificing minions, but playing one, racing a
 
 ## Controls
 **Player 1:** `S` for moving, `D` for going into ghost mode<br>
-**Player 2:** `L` for moving, `K` for going into ghost mode
+**Player 2:** `L` for moving, `K` for going into ghost mode<br>
+**Difficulty** `1` for Easy, `2` for Medium, `3` for Doombot
 
 ## Upcoming
 

@@ -25,10 +25,30 @@ var intro;
 var player1Trigger = keyboard(83);
 var player2Trigger = keyboard(76);
 var startTrigger = keyboard(32);
+var difficulty1Trigger = keyboard(49);
+var difficulty2Trigger = keyboard(50);
+var difficulty3Trigger = keyboard(51);
 var enemies = [];
 
 // Setting difficulty // TODO: Set in selection screen
-var difficulty = 5;
+var difficulties = [
+    {
+        id: 1,
+        name: 'Easy',
+        score: 35
+    },
+    {
+        id: 2,
+        name: 'Medium',
+        score: 10
+    },
+    {
+        id: 3,
+        name: 'Doombot',
+        score: 1
+    }
+];
+var difficulty = 1;
 
 // Loading all images and then calling the setup() function
 PIXI.loader.add([
@@ -129,6 +149,13 @@ function setup() {
     hint.y = app.screen.height / 2 + 20;
     app.stage.addChild(hint);
 
+    // Current Difficulty
+    difficultyStatus = new PIXI.Text('Current Difficulty: ' + difficulties[difficulty - 1].name, hintStyle);
+    difficultyStatus.anchor.set(0.5);
+    difficultyStatus.x = app.screen.width / 2;
+    difficultyStatus.y = app.screen.height - 60;
+    app.stage.addChild(difficultyStatus);
+
     // Setting game state to pause
     state = pause;
 
@@ -154,26 +181,32 @@ function play(delta) {
 
     // Player movement and animation
     player1Trigger.press = () => {
-        // Very simple if-statement
-        // Every click the player moves a bit up and a bit down
-        if(player1Down) {
-            player1.rotation += 0.1;
-        } else {
-            player1.rotation -= 0.1;
+        if (state === play) {
+            // Very simple if-statement
+            // Every click the player moves a bit up and a bit down
+            if(player1Down) {
+                player1.rotation += 0.1;
+            } else {
+                player1.rotation -= 0.1;
+            }
+            player1Down = !player1Down;
+            // - 1 because arrays start at 0 ;)
+            player1.x += difficulties[difficulty - 1].score;
         }
-        player1Down = !player1Down;
-        player1.x += difficulty;
     };
 
     player2Trigger.press = () => {
-        // Same if-statement as above, this time for player2
-        if(player2Down) {
-            player2.rotation += 0.1;
-        } else {
-            player2.rotation -= 0.1;
+        if (state === play) {
+            // Same if-statement as above, this time for player2
+            if(player2Down) {
+                player2.rotation += 0.1;
+            } else {
+                player2.rotation -= 0.1;
+            }
+            player2Down = !player2Down;
+            // - 1 because arrays start at 0 ;)
+            player2.x += difficulties[difficulty - 1].score;
         }
-        player2Down = !player2Down;
-        player2.x += difficulty;
     };
 
     // Checking if player2 hit the finishLine
@@ -194,14 +227,24 @@ function play(delta) {
         enemies[i].children[0].rotation += 0.01 * delta;
     }
 
-    // FIXME: Fallback if preGame() doesn't fade out the video properly
-    // intro.alpha -= 0.01;
+    // Fallback if preGame() doesn't fade out the video properly
+    // if statement in order to prevent memory leaks
+    if (intro.alpa > 0) {
+        intro.alpha -= 0.01;
+    }
 }
 
 // This function is being called during the countdown
 function preGame(delta) {
     // Fading out intro video
     intro.alpha -= 0.01;
+
+    // Fading in enemies
+    for (var i = 0; i < enemies.length; i++) {
+        enemies[i].rotation += 0.005 * delta;
+        enemies[i].children[0].rotation += 0.01 * delta;
+        enemies[i].alpha = 0.25;
+    }
 }
 
 // This function is being called after a game is finished
@@ -215,25 +258,11 @@ function postGame(delta) {
         enemies[i].children[0].rotation += 0.01 * delta;
         enemies[i].alpha -= 0.1;
     }
-
-    // Enabling spacebar button to restart game
-    startTrigger.press = () => {
-        if (state === pause || state === postGame) {
-            state = preGame;
-            startGame();
-        }
-    };
 }
 
 // This function is an idle state before any action is done
 // (Basically the title screen, waiting for the user to press SPACEBAR)
 function pause(delta) {
-    startTrigger.press = () => {
-        if (state === pause || state === postGame) {
-            state = preGame;
-            startGame();
-        }
-    };
 }
 
 // Countdown function, switching game state after 3 seconds
@@ -277,7 +306,7 @@ function spawnEnemies() {
             enemies[i] = new PIXI.Container();
             enemies[i].position.set(app.screen.width/2, app.screen.height/2);
             enemies[i].rotation = (i / 5) * (Math.PI * 2);
-            enemies[i].pivot.set(0, -400);
+            enemies[i].pivot.set(0, -300);
 
             let enemySprites = [
                 'assets/images/enemy1.png',
@@ -294,6 +323,35 @@ function spawnEnemies() {
         }
     }
 }
+
+// Listening for keyboard inputs
+difficulty1Trigger.press = () => {
+    if (state === pause || state === postGame) {
+        difficulty = 1;
+        difficultyStatus.text = 'Current Difficulty: ' + difficulties[difficulty - 1].name;
+    }
+};
+
+difficulty2Trigger.press = () => {
+    if (state === pause || state === postGame) {
+        difficulty = 2;
+        difficultyStatus.text = 'Current Difficulty: ' + difficulties[difficulty - 1].name;
+    }
+};
+
+difficulty3Trigger.press = () => {
+    if (state === pause || state === postGame) {
+        difficulty = 3;
+        difficultyStatus.text = 'Current Difficulty: ' + difficulties[difficulty - 1].name;
+    }
+};
+
+startTrigger.press = () => {
+    if (state === pause || state === postGame) {
+        state = preGame;
+        startGame();
+    }
+};
 
 // Add the generated canvas to the screen
 document.body.appendChild(app.view);
