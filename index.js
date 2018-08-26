@@ -14,15 +14,61 @@ var app = new PIXI.Application({
 });
 
 // Defining some globally accessible variables
-var player1, player2, enemy, goal, finishLine, title, countdown, state;
+var player1;
+var player2;
+var goal;
+var finishLine;
+var countdown;
+var title;
+var state;
+var intro;
 var player1Trigger = keyboard(83);
 var player2Trigger = keyboard(76);
-var enemyAlive = false;
+var startTrigger = keyboard(32);
+var enemies = [];
+
+// Defining some text styles
+const style = new PIXI.TextStyle({
+    align: 'center',
+    fontFamily: "Stroud",
+    fontSize: 56,
+    fill: "white",
+    dropShadow: true,
+    dropShadowColor: "#000000",
+    dropShadowBlur: 4,
+    dropShadowAngle: 1,
+    dropShadowDistance: 6
+});
+
+const counterStyle = new PIXI.TextStyle({
+    align: 'center',
+    fontFamily: "Stroud",
+    fontSize: 156,
+    fill: "white",
+    dropShadow: true,
+    dropShadowColor: "#000000",
+    dropShadowBlur: 4,
+    dropShadowAngle: 1,
+    dropShadowDistance: 6
+});
+
+const hintStyle = new PIXI.TextStyle({
+    align: 'center',
+    fontFamily: "Stroud",
+    fontSize: 36,
+    fill: "white",
+    dropShadow: true,
+    dropShadowColor: "#000000",
+    dropShadowBlur: 4,
+    dropShadowAngle: 1,
+    dropShadowDistance: 6
+});
+
 
 // Setting difficulty // TODO: Set in selection screen
 var difficulty = 5;
 
-// Loading all images and then calling setup() function
+// Loading all images and then calling the setup() function
 PIXI.loader.add([
     'assets/images/minion.png',
     'assets/images/bg.png',
@@ -37,9 +83,25 @@ function setup() {
 
     // Loading in background
     let background = new PIXI.Sprite(PIXI.loader.resources['assets/images/bg.png'].texture);
+    // FIXME: Scale down but keep aspect ratio
     background.width = app.screen.width;
     background.height = app.screen.height;
     app.stage.addChild(background);
+
+    // Creating looped background intro video
+    // By using a DOM Element as the texture, we're able to enable looping
+    // + We can preload the video which fixes some minor display issues
+    let introVideo = document.createElement("video");
+    introVideo.preload = 'auto';
+    introVideo.loop = true;
+    introVideo.src = 'assets/videos/intro.mp4';
+
+    // Now we're just using the DOM Element as the texture, and voilà, we have a looped video!
+    intro = new PIXI.Sprite(PIXI.Texture.fromVideo(introVideo));
+    intro.anchor.set(0.5);
+    intro.x = app.screen.width / 2;
+    intro.y = app.screen.height / 2;
+    app.stage.addChild(intro);
 
     // Loading in invisible finishLine-object for hitDetection
     finishLine = new PIXI.Sprite(PIXI.loader.resources['assets/images/goal.png'].texture);
@@ -83,48 +145,14 @@ function setup() {
     goal.visible = false;
     app.stage.addChild(goal);
 
-    let style = new PIXI.TextStyle({
-        align: 'center',
-        fontFamily: "Stroud",
-        fontSize: 56,
-        fill: "white",
-        dropShadow: true,
-        dropShadowColor: "#000000",
-        dropShadowBlur: 4,
-        dropShadowAngle: 1,
-        dropShadowDistance: 6
-    });
-
-    let counterStyle = new PIXI.TextStyle({
-        align: 'center',
-        fontFamily: "Stroud",
-        fontSize: 156,
-        fill: "white",
-        dropShadow: true,
-        dropShadowColor: "#000000",
-        dropShadowBlur: 4,
-        dropShadowAngle: 1,
-        dropShadowDistance: 6
-    });
-
-    let hintStyle = new PIXI.TextStyle({
-        align: 'center',
-        fontFamily: "Stroud",
-        fontSize: 36,
-        fill: "white",
-        dropShadow: true,
-        dropShadowColor: "#000000",
-        dropShadowBlur: 4,
-        dropShadowAngle: 1,
-        dropShadowDistance: 6
-    });
-
+    // Welcome message text
     title = new PIXI.Text('Welcome to Minion Rush!', style);
     title.anchor.set(0.5);
     title.x = app.screen.width / 2;
-    title.y = 100;
+    title.y = app.screen.height / 2 - 25;
     app.stage.addChild(title);
 
+    // Game start countdown text
     countdown = new PIXI.Text('3', counterStyle);
     countdown.anchor.set(0.5);
     countdown.x = app.screen.width / 2;
@@ -132,10 +160,11 @@ function setup() {
     countdown.visible = false;
     app.stage.addChild(countdown);
 
+    // Hint text
     hint = new PIXI.Text('Press SPACEBAR to start the game!', hintStyle);
     hint.anchor.set(0.5);
     hint.x = app.screen.width / 2;
-    hint.y = app.screen.height / 2;
+    hint.y = app.screen.height / 2 + 20;
     app.stage.addChild(hint);
 
     // Setting game state to pause
@@ -163,6 +192,8 @@ function play(delta) {
 
     // Player movement and animation
     player1Trigger.press = () => {
+        // Very simple if-statement
+        // Every click the player moves a bit up and a bit down
         if(player1Down) {
             player1.rotation += 0.1;
         } else {
@@ -173,6 +204,7 @@ function play(delta) {
     };
 
     player2Trigger.press = () => {
+        // Same if-statement as above, this time for player2
         if(player2Down) {
             player2.rotation += 0.1;
         } else {
@@ -182,31 +214,67 @@ function play(delta) {
         player2.x += difficulty;
     };
 
-    // Finish check
+    // Checking if player2 hit the finishLine
     if (hitTestRectangle(player1, finishLine)) {
-        console.log('Player 1 won!');
+        state = postGame;
         gameOver('Player 1');
     }
+
+    // Checking if player2 hit the finishLine
     if (hitTestRectangle(player2, finishLine)) {
-        console.log('Player 2 won!');
+        state = postGame;
         gameOver('Player 2');
     }
 
+    // Animating enemies flying around in background
     for (var i = 0; i < enemies.length; i++) {
         enemies[i].rotation += 0.005 * delta;
         enemies[i].children[0].rotation += 0.01 * delta;
     }
+
+    // FIXME: Fallback if preGame() doesn't fade out the video properly
+    // intro.alpha -= 0.01;
 }
 
-function pause(delta) {
-    let startTrigger = keyboard(32);
+// This function is being called during the countdown
+function preGame(delta) {
+    // Fading out intro video
+    intro.alpha -= 0.01;
+}
+
+// This function is being called after a game is finished
+function postGame(delta) {
+    // Fading in intro video
+    intro.alpha += 0.01;
+
+    // Fading out enemies
+    for (var i = 0; i < enemies.length; i++) {
+        enemies[i].rotation += 0.005 * delta;
+        enemies[i].children[0].rotation += 0.01 * delta;
+        enemies[i].alpha -= 0.1;
+    }
+
+    // Enabling spacebar button to restart game
     startTrigger.press = () => {
-        if (state === pause) {
+        if (state === pause || state === postGame) {
+            state = preGame;
             startGame();
         }
     };
 }
 
+// This function is an idle state before any action is done
+// (Basically the title screen, waiting for the user to press SPACEBAR)
+function pause(delta) {
+    startTrigger.press = () => {
+        if (state === pause || state === postGame) {
+            state = preGame;
+            startGame();
+        }
+    };
+}
+
+// Countdown function, switching game state after 3 seconds
 function startGame() {
     title.visible = false;
     hint.visible = false;
@@ -228,8 +296,8 @@ function startGame() {
     }, 4000);
 }
 
+// Called when a player reached the finishLine
 function gameOver(player) {
-    state = pause;
     title.text = player + ' won!';
     title.visible = true;
     hint.visible = true;
@@ -240,14 +308,14 @@ function gameOver(player) {
     player2.x = 75;
 }
 
-var enemies = [];
+// Called once to spawn enemies flying around in the background
 function spawnEnemies() {
     if (!enemies.length > 0) {
         for (var i = 0; i < 5; i++) {
             enemies[i] = new PIXI.Container();
             enemies[i].position.set(app.screen.width/2, app.screen.height/2);
             enemies[i].rotation = (i / 5) * (Math.PI * 2);
-            enemies[i].pivot.set(0, -200);
+            enemies[i].pivot.set(0, -400);
 
             let enemySprites = [
                 'assets/images/enemy1.png',
