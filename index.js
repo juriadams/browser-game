@@ -76,6 +76,7 @@ function setup() {
     let introVideo = document.createElement("video");
     introVideo.preload = 'auto';
     introVideo.loop = true;
+    introVideo.autoplay = true;
     introVideo.src = 'assets/videos/intro.mp4';
 
     // Now we're just using the DOM Element as the texture, and voilà, we have a looped video!
