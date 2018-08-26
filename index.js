@@ -76,6 +76,7 @@ function setup() {
     let introVideo = document.createElement("video");
     introVideo.preload = 'auto';
     introVideo.loop = true;
+    introVideo.muted = true;
     introVideo.autoplay = true;
     introVideo.src = 'assets/videos/intro.mp4';
 
@@ -230,7 +231,7 @@ function play(delta) {
 
     // Fallback if preGame() doesn't fade out the video properly
     // if statement in order to prevent memory leaks
-    if (intro.alpa > 0) {
+    if (intro.alpha > 0) {
         intro.alpha -= 0.01;
     }
 }
@@ -268,6 +269,8 @@ function pause(delta) {
 
 // Countdown function, switching game state after 3 seconds
 function startGame() {
+    state = preGame;
+    console.log(state);
     title.visible = false;
     hint.visible = false;
     countdown.visible = true;
@@ -350,6 +353,7 @@ difficulty3Trigger.press = () => {
 startTrigger.press = () => {
     if (state === pause || state === postGame) {
         state = preGame;
+        console.log(state);
         startGame();
     }
 };
