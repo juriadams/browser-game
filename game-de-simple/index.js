@@ -101,7 +101,7 @@ function setup() {
     app.stage.addChild(goal);
 
     // Titeltext definieren
-    title = new PIXI.Text('Welcome to Minion Rush!', style);
+    title = new PIXI.Text('Willkommen zu Minion Rush!', style);
     // Ankerpunkt von Titeltext in die Mitte setzen
     title.anchor.set(0.5);
     // X- und Y-Koordinaten setzen
@@ -123,7 +123,7 @@ function setup() {
     app.stage.addChild(countdown);
 
     // "Hint"-text definieren
-    hint = new PIXI.Text('Press SPACEBAR to start the game!', hintStyle);
+    hint = new PIXI.Text('Drücke LEERTASTE um das Spiel zu starten!', hintStyle);
     // Ankerpunkt des Textes in die Mitte setzen
     hint.anchor.set(0.5);
     // X- und Y-Koordinaten des Textes setzen
@@ -172,7 +172,7 @@ function play() {
         // Wenn ja, dann Status auf "postGame" setzen
         state = postGame;
         // und anschließen die Runde beenden
-        gameOver('Player 1');
+        gameOver('Spieler 1 (oben)');
     }
 
     // Überprüfen ob Spieler 2 die Ziellinie erreicht hat
@@ -180,7 +180,7 @@ function play() {
         // Wenn ja, dann Status auf "postGame" setzen
         state = postGame;
         // und anschließen die Runde beenden
-        gameOver('Player 2');
+        gameOver('Spieler 2 (unten)');
     }
 }
 
@@ -217,7 +217,7 @@ function startGame() {
     }, 2000);
     setTimeout(() => {
         // Countdown-Text nach drei Sekunden auf "GO!" setzen
-        countdown.text = 'GO!';
+        countdown.text = 'LOS!';
         // Spielstatus auf "play" setzten nachdem der Countdown abgelaufen ist
         state = play;
     }, 3000);
@@ -230,7 +230,7 @@ function startGame() {
 // "gameOver"-Funktion, wird ausgeführt wenn ein Spieler die Ziellinie überschritten hat
 function gameOver(player) {
     // Titel-Text auf "Player 1/Player 2 won!" setzen
-    title.text = player + ' won!';
+    title.text = player + ' hat gewonnen!';
     // Titel und Hint wieder einblenden
     title.visible = true;
     hint.visible = true;
